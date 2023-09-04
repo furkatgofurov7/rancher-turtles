@@ -82,7 +82,7 @@ wants to build up their open-source cred :muscle:.
 
 ## Developing rancher-turtles
 
-Check out a dedicated [notes](https://github.com/rancher-sandbox/rancher-turtles#development-setup) section in the rancher-turtles repository.
+Check out a dedicated [notes](https://github.com/rancher-sandbo/rancher-turtles#development-setup) section in the rancher-turtles repository.
 
 ## Asking for help
 
