@@ -3,7 +3,7 @@ name: Weekly check all Markdown links
 on:
   schedule:
     # Cron for every Monday at 12:00 UTC.
-    - cron: "0 12 * * 1"
+    - cron: "25 11 * * 1"
 
 # Remove all permissions from GITHUB_TOKEN except metadata.
 permissions: {}
