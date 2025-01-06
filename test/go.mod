@@ -10,7 +10,7 @@ require (
 	code.gitea.io/sdk/gitea v0.19.0
 	github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46
 	github.com/go-git/go-git/v5 v5.13.0
-	github.com/onsi/ginkgo/v2 v2.22.1
+	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
 	github.com/rancher/turtles v0.0.0-00010101000000-000000000000
 	github.com/rancher/turtles/exp/etcdrestore v0.0.0-00010101000000-000000000000
