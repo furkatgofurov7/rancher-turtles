@@ -341,8 +341,8 @@ var _ = Describe("[AWS] [EC2 Kubeadm] Create and delete CAPI cluster functionali
 			AdditionalTemplates:   [][]byte{e2e.CAPIAWSCPICSI},
 			AdditionalFleetGitRepos: []turtlesframework.FleetCreateGitRepoInput{
 				{
-					Name:                   "calico",
-					Paths:                  []string{"examples/applications/cni/calico"},
+					Name:                   "calico-ec2",
+					Paths:                  []string{"examples/applications/cni/aws/calico"},
 					ClusterProxy:           bootstrapClusterProxy,
 					TargetClusterNamespace: true,
 				},
