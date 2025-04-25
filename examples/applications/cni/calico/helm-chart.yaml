@@ -35,6 +35,7 @@ spec:
         operator: In
         values:
           - azure-rke2-example
-          - vsphere-kubeadm-example
           - docker-kubeadm-example
           - docker-rke2-example
+          - vsphere-kubeadm-example
+          - vsphere-rke2-example
