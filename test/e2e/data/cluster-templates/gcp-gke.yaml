@@ -49,7 +49,7 @@ spec:
   template:
     spec:
       bootstrap:
-        dataSecretName: ""
+        dataSecretName: "placeholder" # This field can't be empty on CAPI >= 1.10.0
       clusterName: "${CLUSTER_NAME}"
       infrastructureRef:
         apiVersion: infrastructure.cluster.x-k8s.io/v1beta1

@@ -51,7 +51,10 @@ spec:
     spec:
       clusterName: "${CLUSTER_NAME}"
       bootstrap:
-        dataSecretName: ""
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
+          kind: EKSConfig
+          name: "${CLUSTER_NAME}-mp-0"
       infrastructureRef:
         name: "${CLUSTER_NAME}-pool-0"
         apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
@@ -64,4 +67,10 @@ metadata:
   namespace: "${NAMESPACE}"
   annotations:
     "helm.sh/resource-policy": keep
+spec: {}
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
+kind: EKSConfig
+metadata:
+  name: "${CLUSTER_NAME}-mp-0"
 spec: {}
