@@ -1,19 +1,26 @@
-name: Run nightly e2e tests
+name: Run long e2e tests
 
 on:
   schedule:
     - cron: "0 0 * * *"
   workflow_dispatch:
+  merge_group:
 
-concurrency: ci_e2e_tests
+concurrency:
+  group: ci-${{ github.ref }}
+
+env:
+  GINKGO_LABEL_FILTER: ${{ github.event.pull_request.labels && (github.event.pull_request.labels | map('toJson') | map(fromJson) | map(attribute='name') | select(startsWith('test/')) | first | replace('test/', '')) || '' }}
 
 jobs:
   publish_e2e_image:
     uses: ./.github/workflows/e2e-image-publish.yaml
+    if: ${{ env.GINKGO_LABEL_FILTER != '' || !github.event.pull_request.labels }}
     secrets: inherit
   e2e_import_gitops_v3:
     needs: publish_e2e_image
     uses: ./.github/workflows/run-e2e-suite.yaml
+    if: ${{ env.GINKGO_LABEL_FILTER != '' || !github.event.pull_request.labels }}
     with:
       test_suite: test/e2e/suites/import-gitops-v3
       test_name: Import via GitOps [v3]
@@ -23,6 +30,7 @@ jobs:
   e2e_v2prov:
     needs: publish_e2e_image
     uses: ./.github/workflows/run-e2e-suite.yaml
+    if: ${{ env.GINKGO_LABEL_FILTER != '' || !github.event.pull_request.labels }}
     with:
       test_suite: test/e2e/suites/v2prov
       test_name: v2 provisioning
@@ -31,6 +39,7 @@ jobs:
     secrets: inherit
   e2e_vsphere:
     uses: ./.github/workflows/run-vsphere-tests.yaml
+    if: ${{ env.GINKGO_LABEL_FILTER != '' || !github.event.pull_request.labels }}
     secrets: inherit
   e2e_cleanup:
     if: always()
