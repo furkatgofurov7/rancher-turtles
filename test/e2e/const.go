@@ -54,6 +54,9 @@ var (
 	//go:embed data/capi-operator/capv-identity-secret.yaml
 	VSphereProviderSecret []byte
 
+	//go:embed data/capi-operator/caapf-config.yaml
+	CAAPFConfig []byte
+
 	//go:embed data/rancher/ingress.yaml
 	IngressConfig []byte
 

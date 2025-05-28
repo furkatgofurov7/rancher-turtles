@@ -77,6 +77,7 @@ var _ = SynchronizedBeforeSuite(
 
 		testenv.DeployRancherTurtles(ctx, testenv.DeployRancherTurtlesInput{
 			BootstrapClusterProxy: setupClusterResult.BootstrapClusterProxy,
+			ConfigurationPatches:  [][]byte{e2e.CAAPFConfig}, //Workaround for: https://github.com/rancher/cluster-api-addon-provider-fleet/issues/313
 		})
 
 		data, err := json.Marshal(e2e.Setup{
