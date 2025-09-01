@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Allow running manually on demand
 
 env:
-  RELEASE_TAG: t9.9.9-fake
+  RELEASE_TAG: v9.9.9-fake
   GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
       password: ${{ matrix.password }}
       username: ${{ matrix.username }}
       registry: ${{ matrix.registry }}
-      tag: t9.9.9-fake
+      tag: v9.9.9-fake
       image: ${{ matrix.image }}
       secret_registry: ${{ matrix.secret_registry }}
     secrets: inherit
