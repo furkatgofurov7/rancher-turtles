@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Allow running manually on demand
 
 env:
-  RELEASE_TAG: t9.9.9-fake
+  RELEASE_TAG: v9.9.9-nightly
   GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
 jobs:
@@ -20,14 +20,9 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-      - name: Set and push fake tag for release
+      - name: Create fake release tag (local only)
         run: |
           git tag ${{ env.RELEASE_TAG }}
-      - name: Push changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git push --tags
 
   build-push-services:
     name: Build, sign and provenance
@@ -46,13 +41,14 @@ jobs:
           username: ${{ github.actor }}
           password: GITHUB_TOKEN
           image: GHCR_IMAGE
+          tag: v9.9.9-nightly
           secret_registry: false
     uses: ./.github/workflows/release.yml
     with:
       password: ${{ matrix.password }}
       username: ${{ matrix.username }}
       registry: ${{ matrix.registry }}
-      tag: t9.9.9-fake
+      tag: ${{ matrix.tag }}
       image: ${{ matrix.image }}
       secret_registry: ${{ matrix.secret_registry }}
     secrets: inherit
@@ -69,7 +65,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          ref: ${{ env.RELEASE_TAG }}
+          ref: main
           fetch-depth: 0
       - name: setupGo
         uses: actions/setup-go@v5.5.0
@@ -122,9 +118,6 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Delete nigtly tag and push
+      - name: Delete nightly tag (local only)
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git tag -d ${{ env.RELEASE_TAG }}
-          git push origin --delete ${{ env.RELEASE_TAG }}
+          git tag -d ${{ env.RELEASE_TAG }} || true
