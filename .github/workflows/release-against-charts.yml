@@ -109,7 +109,7 @@ jobs:
           git checkout -b "$BRANCH" "$CHARTS_REF"
           export CHARTS_DIR="${GITHUB_WORKSPACE}/charts"
           # Remove the prefix v because the chart version doesn't contain it
-          ./turtles/.github/scripts/release-against-charts.sh  "$PREV_TURTLES_SHORT" "$NEW_TURTLES_SHORT" ${{github.event.inputs.prev_chart}} ${{github.event.inputs.new_chart}} ${{github.event.inputs.should_replace}}
+          ../turtles/.github/scripts/release-against-charts.sh  "$PREV_TURTLES_SHORT" "$NEW_TURTLES_SHORT" ${{github.event.inputs.prev_chart}} ${{github.event.inputs.new_chart}} ${{github.event.inputs.should_replace}}
 
       - name: Push and create pull request
         env:
