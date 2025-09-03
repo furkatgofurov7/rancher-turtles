@@ -104,7 +104,7 @@ jobs:
           echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
           git checkout -b "$BRANCH" "$RANCHER_REF"
           export CHARTS_DIR="${GITHUB_WORKSPACE}/rancher"
-          ./rancher-turtles/.github/scripts/release-against-rancher.sh "$NEW_TURTLES_SHORT" ${{github.event.inputs.new_chart}}
+          ../rancher-turtles/.github/scripts/release-against-rancher.sh "$NEW_TURTLES_SHORT" ${{github.event.inputs.new_chart}}
 
       - name: Push and create pull request
         env:
