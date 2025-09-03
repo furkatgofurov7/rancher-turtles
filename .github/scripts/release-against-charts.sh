@@ -9,6 +9,8 @@ NEW_TURTLES_VERSION="$2"    # e.g. 0.23.0
 PREV_CHART_VERSION="$3"   # e.g. 101.2.0
 NEW_CHART_VERSION="$4"
 REPLACE="$5"              # remove previous version if `true`, otherwise add new
+VERSION_OVERRIDE="$6"     # e.g. auto, patch, minor
+MULTI_RC="$7"             # e.g. true, false
 
 CHARTS_DIR=${CHARTS_DIR-"$(dirname -- "$0")/../../../charts"}
 
@@ -18,7 +20,9 @@ if [ -f packages/rancher-turtles/package.yaml ];  then
     # Use new auto bump scripting until the Github action CI works as expected
     # no parameters besides the target branch are needed in theory, but the pr
     # creation still needs the new Chart and Turtles version
-    make chart-bump package=rancher-turtles branch="$(git rev-parse --abbrev-ref HEAD)"
+    make pull-scripts
+    # make chart-bump package=rancher-turtles branch="$(git rev-parse --abbrev-ref HEAD)"
+    LOG="DEBUG" ./bin/charts-build-scripts chart-bump --package=rancher-turtles --branch="$(git rev-parse --abbrev-ref HEAD)" --override="${VERSION_OVERRIDE}" --multi-rc="${MULTI_RC}"
 
     if [ "${REPLACE}" == "true" ] && [ -f "assets/rancher-turtles/rancher-turtles-${PREV_CHART_VERSION}+up${PREV_TURTLES_VERSION}.tgz" ]; then
         for i in rancher-turtles; do
