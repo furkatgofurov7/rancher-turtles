@@ -26,6 +26,20 @@ on:
         description: "Should the old Turtles version be replaced/removed? (e.g. true in case of release candidate bumps)"
         required: false
         default: "true"
+      version-override:
+        description: "Version Override (optional): disable the bump version auto calculation, forcing it to be a patch or minor version bump"
+        required: false
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+        default: 'auto'
+      multi-rc:
+        description: "Multi-RC (optional): allow multiple-RC versions for this bump, the default behavior is to remove the previous RC version"
+        required: false
+        type: boolean
+        default: false
 
 env:
   TURTLES_REF: "${{ github.ref_name }}"
@@ -110,7 +124,7 @@ jobs:
           git checkout -b "$BRANCH" "$CHARTS_REF"
           export CHARTS_DIR="${GITHUB_WORKSPACE}/charts"
           # Remove the prefix v because the chart version doesn't contain it
-          ../rancher-turtles/.github/scripts/release-against-charts.sh  "$PREV_TURTLES_SHORT" "$NEW_TURTLES_SHORT" ${{github.event.inputs.prev_chart}} ${{github.event.inputs.new_chart}} ${{github.event.inputs.should_replace}}
+          ../rancher-turtles/.github/scripts/release-against-charts.sh  "$PREV_TURTLES_SHORT" "$NEW_TURTLES_SHORT" ${{github.event.inputs.prev_chart}} ${{github.event.inputs.new_chart}} ${{github.event.inputs.should_replace}} ${{github.event.inputs.version-override}} ${{github.event.inputs.multi-rc}}
 
       - name: Push and create pull request
         env:
