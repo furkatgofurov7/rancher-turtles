@@ -43,13 +43,14 @@ jobs:
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
+          repository: furkatgofurov7/rancher-turtles
           ref: "${{ env.TURTLES_REF }}"
-          path: turtles
+          path: rancher-turtles
 
-      - uses: rancher-eio/read-vault-secrets@main
-        with:
-          secrets: |
-            github/token/rancher--charts--pull_requests--write token | GH_TOKEN
+      # - uses: rancher-eio/read-vault-secrets@main
+      #   with:
+      #     secrets: |
+      #       github/token/rancher--charts--pull_requests--write token | GH_TOKEN
 
       # - uses: rancher-eio/read-vault-secrets@main
       #   with:
@@ -66,12 +67,12 @@ jobs:
       #     repositories: |
       #       charts
 
-      - name: Checkout rancher/charts repository
+      - name: Checkout furkatgofurov7/charts repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
-          repository: ${{ github.repository_owner }}/charts
+          repository: furkatgofurov7/charts
           ref: "${{ env.CHARTS_REF }}"
-          token: "${{ env.GH_TOKEN }}"
+          token: "${{ secrets.PUSH_TO_FORKS_TOKEN }}"
           path: charts
           # Allow making git push request later on
           persist-credentials: true
@@ -83,7 +84,7 @@ jobs:
           git config --global user.name "$APP_USER"
           git config --global user.email "${user_id}+${APP_USER}@users.noreply.github.com"
         env:
-          GH_TOKEN: ${{ env.GH_TOKEN }}
+          GH_TOKEN: "${{ secrets.PUSH_TO_FORKS_TOKEN }}"
           APP_USER: "${{ github.actor }}"
 
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
@@ -113,12 +114,12 @@ jobs:
 
       - name: Push and create pull request
         env:
-          GH_TOKEN: ${{ env.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.PUSH_TO_FORKS_TOKEN }}
         run: |
           cd charts
           git push origin "$BRANCH"
 
-          body=$(../turtles/.github/scripts/release-message.sh "$PREV_TURTLES" "$NEW_TURTLES")
+          body=$(../rancher-turtles/.github/scripts/release-message.sh "$PREV_TURTLES" "$NEW_TURTLES")
 
           gh pr create \
             --title "[$CHARTS_REF] Bump rancher-turtles to $NEW_TURTLES" \
