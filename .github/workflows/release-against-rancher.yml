@@ -42,13 +42,14 @@ jobs:
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
+          repository: furkatgofurov7/rancher-turtles
           ref: "${{ env.TURTLES_REF }}"
-          path: turtles
+          path: rancher-turtles
 
-      - uses: rancher-eio/read-vault-secrets@main
-        with:
-          secrets: |
-            github/token/rancher--rancher--pull_requests--write token | GH_TOKEN
+      # - uses: rancher-eio/read-vault-secrets@main
+      #   with:
+      #     secrets: |
+      #       github/token/rancher--rancher--pull_requests--write token | GH_TOKEN
 
       # - uses: rancher-eio/read-vault-secrets@main
       #   with:
@@ -65,12 +66,12 @@ jobs:
       #     repositories: |
       #       rancher
 
-      - name: Checkout rancher/rancher
+      - name: Checkout furkatgofurov7/rancher
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
         with:
-          repository: ${{ github.repository_owner }}/rancher
+          repository: furkatgofurov7/rancher
           ref: "${{ env.RANCHER_REF }}"
-          token: "${{ env.GH_TOKEN }}"
+          token: "${{ secrets.PUSH_TO_FORKS_TOKEN }}"
           path: rancher
           # Allow making git push request later on
           persist-credentials: true
@@ -89,7 +90,7 @@ jobs:
           git config --global user.name "$APP_USER"
           git config --global user.email "${user_id}+${APP_USER}@users.noreply.github.com"
         env:
-          GH_TOKEN: "${{ env.GH_TOKEN }}"
+          GH_TOKEN: "${{ secrets.PUSH_TO_FORKS_TOKEN }}"
           APP_USER: "${{ github.actor }}"
 
       - name: Prepare short version
@@ -103,16 +104,16 @@ jobs:
           echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
           git checkout -b "$BRANCH" "$RANCHER_REF"
           export CHARTS_DIR="${GITHUB_WORKSPACE}/rancher"
-          ./turtles/.github/scripts/release-against-rancher.sh "$NEW_TURTLES_SHORT" ${{github.event.inputs.new_chart}}
+          ./rancher-turtles/.github/scripts/release-against-rancher.sh "$NEW_TURTLES_SHORT" ${{github.event.inputs.new_chart}}
 
       - name: Push and create pull request
         env:
-          GH_TOKEN: ${{ env.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.PUSH_TO_FORKS_TOKEN }}
         run: |
           cd rancher
           git push origin $BRANCH
 
-          body=$(../turtles/.github/scripts/release-message.sh "$PREV_TURTLES" "$NEW_TURTLES")
+          body=$(../rancher-turtles/.github/scripts/release-message.sh "$PREV_TURTLES" "$NEW_TURTLES")
 
           gh pr create \
             --title "[$RANCHER_REF] Bump rancher-turtles to $NEW_TURTLES" \
