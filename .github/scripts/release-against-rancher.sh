@@ -13,8 +13,8 @@ pushd "${RANCHER_DIR}" > /dev/null
 
 # Check if version is available online
 CHART_DEFAULT_BRANCH=$(grep "ARG CHART_DEFAULT_BRANCH=" package/Dockerfile | cut -d'=' -f2)
-if ! curl -s --head --fail "https://github.com/rancher/charts/raw/${CHART_DEFAULT_BRANCH}/assets/turtles/turtles-${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION}.tgz" > /dev/null; then
-    echo "Version ${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION} does not exist in the branch ${CHART_DEFAULT_BRANCH} in rancher/charts"
+if ! curl -s --head --fail "https://github.com/furkatgofurov7/charts/raw/${CHART_DEFAULT_BRANCH}/assets/turtles/turtles-${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION}.tgz" > /dev/null; then
+    echo "Version ${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION} does not exist in the branch ${CHART_DEFAULT_BRANCH} in furkatgofurov7/charts"
     exit 1
 fi
 
