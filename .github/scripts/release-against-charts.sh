@@ -22,7 +22,7 @@ if [ -f packages/rancher-turtles/package.yaml ];  then
     # creation still needs the new Chart and Turtles version
     make pull-scripts
     # make chart-bump package=rancher-turtles branch="$(git rev-parse --abbrev-ref HEAD)"
-    LOG="DEBUG" ./bin/charts-build-scripts chart-bump --package=rancher-turtles --branch="$(git rev-parse --abbrev-ref HEAD)" --override="${VERSION_OVERRIDE}" --multi-rc="${MULTI_RC}"
+    LOG="DEBUG" ./bin/charts-build-scripts chart-bump --package=rancher-turtles --branch=dev-v2.12 --override="${VERSION_OVERRIDE}" --multi-rc="${MULTI_RC}"
 
     if [ "${REPLACE}" == "true" ] && [ -f "assets/rancher-turtles/rancher-turtles-${PREV_CHART_VERSION}+up${PREV_TURTLES_VERSION}.tgz" ]; then
         for i in rancher-turtles; do
