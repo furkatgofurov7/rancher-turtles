@@ -6,11 +6,12 @@ set -e
 
 PREV_TURTLES_VERSION="$1"   # e.g. 0.23.0-rc.0
 NEW_TURTLES_VERSION="$2"    # e.g. 0.23.0
-PREV_CHART_VERSION="$3"   # e.g. 101.2.0
-NEW_CHART_VERSION="$4"
-REPLACE="$5"              # remove previous version if `true`, otherwise add new
-VERSION_OVERRIDE="$6"     # e.g. auto, patch, minor
-MULTI_RC="$7"             # e.g. true, false
+# PREV_CHART_VERSION="$3"   # e.g. 101.2.0
+# NEW_CHART_VERSION="$4"
+REPLACE="$3"              # remove previous version if `true`, otherwise add new
+VERSION_OVERRIDE="$4"     # e.g. auto, patch, minor
+MULTI_RC="$5"             # e.g. true, false
+NEW_CHART="$6"            # e.g. true, false
 
 CHARTS_DIR=${CHARTS_DIR-"$(dirname -- "$0")/../../../charts"}
 
@@ -22,7 +23,7 @@ if [ -f packages/rancher-turtles/package.yaml ];  then
     # creation still needs the new Chart and Turtles version
     make pull-scripts
     # make chart-bump package=rancher-turtles branch="$(git rev-parse --abbrev-ref HEAD)"
-    LOG="DEBUG" ./bin/charts-build-scripts chart-bump --package="rancher-turtles" --branch="dev-v2.12"  --override="${VERSION_OVERRIDE}" --multi-rc="${MULTI_RC}"
+    LOG="DEBUG" ./bin/charts-build-scripts chart-bump --package="rancher-turtles" --branch="dev-v2.12"  --override="${VERSION_OVERRIDE}" --multi-rc="${MULTI_RC}" --new-chart="${NEW_CHART}"
 
     if [ "${REPLACE}" == "true" ] && [ -f "assets/rancher-turtles/rancher-turtles-${PREV_CHART_VERSION}+up${PREV_TURTLES_VERSION}.tgz" ]; then
         for i in rancher-turtles; do
