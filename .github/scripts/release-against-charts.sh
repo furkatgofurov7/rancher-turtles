@@ -1,17 +1,22 @@
-#!/bin/bash
+#!/bin/sh
 #
-# Submit new Turtles version against rancher/charts
+# Bumps Webhook version in a locally checked out rancher/charts repository
+#
+# Usage:
+#   ./release-against-charts.sh <path to charts repo> <prev webhook release> <new webhook release>
+#
+# Example:
+# ./release-against-charts.sh "${GITHUB_WORKSPACE}" "v0.5.0-rc.13" "v0.5.0-rc.14"
 
-set -e
-
-PREV_TURTLES_VERSION="$1"   # e.g. 0.23.0-rc.0
-NEW_TURTLES_VERSION="$2"    # e.g. 0.23.0
+CHARTS_DIR=$1
+PREV_TURTLES_VERSION="$2"   # e.g. 0.23.0-rc.0
+NEW_TURTLES_VERSION="$3"    # e.g. 0.23.0
 # PREV_CHART_VERSION="$3"   # e.g. 101.2.0
 # NEW_CHART_VERSION="$4"
 #REPLACE="$3"              # remove previous version if `true`, otherwise add new
-VERSION_OVERRIDE="$3"     # e.g. auto, patch, minor
-MULTI_RC="$4"             # e.g. true, false
-NEW_CHART="$5"            # e.g. true, false
+# VERSION_OVERRIDE="$3"     # e.g. auto, patch, minor
+# MULTI_RC="$4"             # e.g. true, false
+# NEW_CHART="$5"            # e.g. true, false
 
 # CHARTS_DIR=${CHARTS_DIR-"$(dirname -- "$0")/../../../charts"}
 
