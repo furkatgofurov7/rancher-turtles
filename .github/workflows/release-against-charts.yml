@@ -18,29 +18,29 @@ on:
       #   description: "Previous Rancher Chart version (e.g. 101.1.0)"
       #   required: true
         # default: ""
-      new-chart:
-        description: "New Chart (optional): used to introduce a net new chart at rancher/charts"
-        required: false
-        type: boolean
-        default: false
+      # new-chart:
+      #   description: "New Chart (optional): used to introduce a net new chart at rancher/charts"
+      #   required: false
+      #   type: boolean
+      #   default: false
       # should_replace:
       #   description: "Should the old Turtles version be replaced/removed? (e.g. true in case of release candidate bumps)"
       #   required: false
       #   default: "true"
-      version-override:
-        description: "Version Override (optional): disable the bump version auto calculation, forcing it to be a patch or minor version bump"
-        required: false
-        type: choice
-        options:
-          - auto
-          - patch
-          - minor
-        default: 'auto'
-      multi-rc:
-        description: "Multi-RC (optional): allow multiple-RC versions for this bump, the default behavior is to remove the previous RC version"
-        required: false
-        type: boolean
-        default: false
+      # version-override:
+      #   description: "Version Override (optional): disable the bump version auto calculation, forcing it to be a patch or minor version bump"
+      #   required: false
+      #   type: choice
+      #   options:
+      #     - auto
+      #     - patch
+      #     - minor
+      #   default: 'auto'
+      # multi-rc:
+      #   description: "Multi-RC (optional): allow multiple-RC versions for this bump, the default behavior is to remove the previous RC version"
+      #   required: false
+      #   type: boolean
+      #   default: false
 
 env:
   TURTLES_REF: "${{ github.ref_name }}"
@@ -124,7 +124,7 @@ jobs:
           echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
           git checkout -b "$BRANCH" "$CHARTS_REF"
           #export CHARTS_DIR="${GITHUB_WORKSPACE}/charts"
-          ../rancher-turtles/.github/scripts/release-against-charts.sh . "$PREV_TURTLES" "$NEW_TURTLES" ${{github.event.inputs.version-override}} ${{github.event.inputs.multi-rc}} ${{github.event.inputs.new-chart}}
+          ../rancher-turtles/.github/scripts/release-against-charts.sh . "$PREV_TURTLES" "$NEW_TURTLES"
 
       - name: Push and create pull request
         env:
