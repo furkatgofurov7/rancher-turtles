@@ -23,10 +23,10 @@ on:
         required: false
         type: boolean
         default: false
-      should_replace:
-        description: "Should the old Turtles version be replaced/removed? (e.g. true in case of release candidate bumps)"
-        required: false
-        default: "true"
+      # should_replace:
+      #   description: "Should the old Turtles version be replaced/removed? (e.g. true in case of release candidate bumps)"
+      #   required: false
+      #   default: "true"
       version-override:
         description: "Version Override (optional): disable the bump version auto calculation, forcing it to be a patch or minor version bump"
         required: false
@@ -123,9 +123,9 @@ jobs:
           BRANCH="bump-turtlles-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
           git checkout -b "$BRANCH" "$CHARTS_REF"
-          export CHARTS_DIR="${GITHUB_WORKSPACE}/charts"
+          #export CHARTS_DIR="${GITHUB_WORKSPACE}/charts"
           # Remove the prefix v because the chart version doesn't contain it
-          ../rancher-turtles/.github/scripts/release-against-charts.sh  "$PREV_TURTLES_SHORT" "$NEW_TURTLES_SHORT" ${{github.event.inputs.should_replace}} ${{github.event.inputs.version-override}} ${{github.event.inputs.multi-rc}} ${{github.event.inputs.new-chart}}
+          ../rancher-turtles/.github/scripts/release-against-charts.sh  "$PREV_TURTLES_SHORT" "$NEW_TURTLES_SHORT" ${{github.event.inputs.version-override}} ${{github.event.inputs.multi-rc}} ${{github.event.inputs.new-chart}}
 
       - name: Push and create pull request
         env:
