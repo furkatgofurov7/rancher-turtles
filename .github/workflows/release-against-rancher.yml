@@ -14,14 +14,14 @@ on:
         description: "New Turtles version (e.g. v0.23.0-rc.0)"
         required: true
         default: ""
-      new_chart:
-        description: "New Rancher Chart version (e.g. 107.0.0)"
-        required: true
-        default: ""
-      go_version:
-        description: "Go version used for bumping the api. This should be the same version as in the go.mod file of the project."
-        required: true
-        default: '1.24.*'
+      # new_chart:
+      #   description: "New Rancher Chart version (e.g. 107.0.0)"
+      #   required: true
+      #   default: ""
+      # go_version:
+      #   description: "Go version used for bumping the api. This should be the same version as in the go.mod file of the project."
+      #   required: true
+      #   default: '1.24.*'
 
 env:
   GOARCH: amd64
@@ -76,12 +76,41 @@ jobs:
           # Allow making git push request later on
           persist-credentials: true
 
-      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
-        with:
-          go-version: ${{ env.SETUP_GO_VERSION }}
+      - name: Find charts branch
+        id: find_charts_branch
+        run: |
+          cd rancher
+          # Extract dev-v2.9 out of the following line:
+          #     ChartDefaultBranch                  = NewSetting("chart-default-branch", "dev-v2.9")
+          charts_branch=$(grep '"chart-default-branch"' pkg/settings/setting.go | cut -d'"' -f4)
+          echo "charts_branch=$charts_branch" >> $GITHUB_OUTPUT
 
-      - name: Install controller-gen
-        run: go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.17.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+        with:
+          repository: furkatgofurov7/charts
+          ref: "${{ steps.find_charts_branch.outputs.charts_branch }}"
+          path: charts
+
+      # Prevents the Rancher CI to continuously fail while the webhook RC is not
+      # yet added to charts' index.yaml file due to caching.
+      - name: Verify RC exists
+        env:
+          CHARTS_BRANCH: "${{ steps.find_charts_branch.outputs.charts_branch }}"
+        run: |
+          cd charts
+          new_turtles_short=$(echo "$NEW_TURTLES" | sed 's|^v||')  # e.g. 0.5.2-rc.3
+          # Empty output if the version is not found, otherwise the version will be outputed.
+          found=$(yq ".entries.rancher-turtles[].version | select(. == \"*$new_turtles_short\")" index.yaml)
+          if [ -z "$found" ]; then
+            echo "rancher-turtles RC version $NEW_TURTLES not found in charts (branch=$CHARTS_BRANCH). Aborting."
+            exit 1
+          fi
+      # - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
+      #   with:
+      #     go-version: ${{ env.SETUP_GO_VERSION }}
+
+      # - name: Install controller-gen
+      #   run: go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.17.2
 
       - name: Configure the committer
         run: |
@@ -93,9 +122,9 @@ jobs:
           GH_TOKEN: "${{ secrets.PUSH_TO_FORKS_TOKEN }}"
           APP_USER: "${{ github.actor }}"
 
-      - name: Prepare short version
-        run: |
-          echo "NEW_TURTLES_SHORT=${NEW_TURTLES#v}" >> $GITHUB_ENV
+      # - name: Prepare short version
+      #   run: |
+      #     echo "NEW_TURTLES_SHORT=${NEW_TURTLES#v}" >> $GITHUB_ENV
 
       - name: Run release script
         run: |
@@ -103,8 +132,8 @@ jobs:
           BRANCH="bump-turtles-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
           git checkout -b "$BRANCH" "$RANCHER_REF"
-          export CHARTS_DIR="${GITHUB_WORKSPACE}/rancher"
-          ../rancher-turtles/.github/scripts/release-against-rancher.sh "$NEW_TURTLES_SHORT" ${{github.event.inputs.new_chart}}
+          # export CHARTS_DIR="${GITHUB_WORKSPACE}/rancher"
+          ../rancher-turtles/.github/scripts/release-against-rancher.sh . "$NEW_TURTLES"
 
       - name: Push and create pull request
         env:
