@@ -27,8 +27,8 @@ fi
 
 set -ue
 
-url=$(gh release view --repo rancher/turtles --json url "${NEW_TURTLES_VERSION}" --jq '.url')
-body=$(gh release view --repo rancher/turtles --json body "${NEW_TURTLES_VERSION}" --jq '.body')
+url=$(gh release view --repo furkatgofurov7/rancher-turtles --json url "${NEW_TURTLES_VERSION}" --jq '.url')
+body=$(gh release view --repo furkatgofurov7/rancher-turtles --json body "${NEW_TURTLES_VERSION}" --jq '.body')
 
 generated_by=""
 if [ -n "$GITHUB_TRIGGERING_ACTOR" ]; then
@@ -47,8 +47,8 @@ $body
 
 # Useful links
 
-- Commit comparison: https://github.com/rancher/turtles/compare/${PREV_TURTLES_VERSION}...${NEW_TURTLES_VERSION}
-- Release ${PREV_TURTLES_VERSION}: https://github.com/rancher/turtles/releases/tag/${PREV_TURTLES_VERSION}
+- Commit comparison: https://github.com/furkatgofurov7/rancher-turtles/compare/${PREV_TURTLES_VERSION}...${NEW_TURTLES_VERSION}
+- Release ${PREV_TURTLES_VERSION}: https://github.com/furkatgofurov7/rancher-turtles/releases/tag/${PREV_TURTLES_VERSION}
 
 $generated_by
 EOF
