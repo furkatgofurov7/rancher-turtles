@@ -112,10 +112,10 @@ jobs:
           sudo apt install -y --allow-change-held-packages snapd
           sudo snap install yq --channel=v4/stable
 
-      - name: Prepare short versions
-        run: |
-          echo "PREV_TURTLES_SHORT=${PREV_TURTLES#v}" >> $GITHUB_ENV
-          echo "NEW_TURTLES_SHORT=${NEW_TURTLES#v}" >> $GITHUB_ENV
+      # - name: Prepare short versions
+      #   run: |
+      #     echo "PREV_TURTLES_SHORT=${PREV_TURTLES#v}" >> $GITHUB_ENV
+      #     echo "NEW_TURTLES_SHORT=${NEW_TURTLES#v}" >> $GITHUB_ENV
 
       - name: Run release script
         run: |
@@ -124,8 +124,7 @@ jobs:
           echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
           git checkout -b "$BRANCH" "$CHARTS_REF"
           #export CHARTS_DIR="${GITHUB_WORKSPACE}/charts"
-          # Remove the prefix v because the chart version doesn't contain it
-          ../rancher-turtles/.github/scripts/release-against-charts.sh  "$PREV_TURTLES_SHORT" "$NEW_TURTLES_SHORT" ${{github.event.inputs.version-override}} ${{github.event.inputs.multi-rc}} ${{github.event.inputs.new-chart}}
+          ../rancher-turtles/.github/scripts/release-against-charts.sh . "$PREV_TURTLES" "$NEW_TURTLES" ${{github.event.inputs.version-override}} ${{github.event.inputs.multi-rc}} ${{github.event.inputs.new-chart}}
 
       - name: Push and create pull request
         env:
