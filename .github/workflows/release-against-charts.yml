@@ -15,7 +15,7 @@ on:
         required: true
         default: ""
       bump_major:
-        description: "Bump chart major version instead of patch (for new rancher branching)"
+        description: "Set 'true' to bump chart major version (only for new Turtles minor releases). Default: false."
         required: false
         default: "false"
 
