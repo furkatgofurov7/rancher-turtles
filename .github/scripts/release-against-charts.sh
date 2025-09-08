@@ -113,28 +113,27 @@ fi
 
 if [ "$is_new_minor" = "true" ]; then
     if [ "$BUMP_MAJOR" != "true" ]; then
-        echo "Error: Detected new minor bump ($PREV_TURTLES_VERSION → $NEW_TURTLES_VERSION), but bump_major flag was not set."
+        echo "Error: Detected new minor bump ($PREV_TURTLES_VERSION to $NEW_TURTLES_VERSION), but bump_major flag was not set."
         exit 1
     fi
-    echo "Bumping chart major: $PREV_CHART_VERSION → $(bump_major "$PREV_CHART_VERSION")"
+    echo "Bumping chart major: $PREV_CHART_VERSION to $(bump_major "$PREV_CHART_VERSION")"
     NEW_CHART_VERSION=$(bump_major "$PREV_CHART_VERSION")
-elif [ "$BUMP_MAJOR" = "true" ]; then
-    echo "Warning: bump_major flag set, but no new minor detected. Ignoring."
-    NEW_CHART_VERSION=$(bump_major "$PREV_CHART_VERSION")
+    COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart major bump)"
 elif [ "$is_prev_rc" = "false" ]; then
-    echo "Bumping chart patch: $PREV_CHART_VERSION → $(bump_patch "$PREV_CHART_VERSION")"
+    echo "Bumping chart patch: $PREV_CHART_VERSION to $(bump_patch "$PREV_CHART_VERSION")"
     NEW_CHART_VERSION=$(bump_patch "$PREV_CHART_VERSION")
+    COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart patch bump)"
 else
     echo "Keeping chart version unchanged: $PREV_CHART_VERSION"
     NEW_CHART_VERSION=$PREV_CHART_VERSION
+    COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (no chart bump)"
 fi
-
 
 sed -i "s/${PREV_TURTLES_VERSION_SHORT}/${NEW_TURTLES_VERSION_SHORT}/g" ./packages/rancher-turtles/package.yaml
 sed -i "s/${PREV_CHART_VERSION}/${NEW_CHART_VERSION}/g" ./packages/rancher-turtles/package.yaml
 
 git add packages/rancher-turtles
-git commit -m "Bump rancher-turtles to $NEW_TURTLES_VERSION"
+git commit -m "$COMMIT_MSG"
 
 PACKAGE=rancher-turtles make charts
 git add ./assets/rancher-turtles ./charts/rancher-turtles index.yaml
