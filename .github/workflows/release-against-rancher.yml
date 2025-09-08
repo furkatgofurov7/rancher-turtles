@@ -11,17 +11,9 @@ on:
         required: true
         default: ""
       new_turtles:
-        description: "New Turtles version (e.g. v0.23.0-rc.0)"
+        description: "New Turtles version (e.g. v0.23.0)"
         required: true
         default: ""
-      # new_chart:
-      #   description: "New Rancher Chart version (e.g. 107.0.0)"
-      #   required: true
-      #   default: ""
-      # go_version:
-      #   description: "Go version used for bumping the api. This should be the same version as in the go.mod file of the project."
-      #   required: true
-      #   default: '1.24.*'
 
 env:
   GOARCH: amd64
@@ -45,26 +37,6 @@ jobs:
           repository: furkatgofurov7/rancher-turtles
           ref: "${{ env.TURTLES_REF }}"
           path: rancher-turtles
-
-      # - uses: rancher-eio/read-vault-secrets@main
-      #   with:
-      #     secrets: |
-      #       github/token/rancher--rancher--pull_requests--write token | GH_TOKEN
-
-      # - uses: rancher-eio/read-vault-secrets@main
-      #   with:
-      #     secrets: |
-      #       secret/data/github/repo/${{ github.repository }}/github/app-credentials appId | APP_ID ;
-      #       secret/data/github/repo/${{ github.repository }}/github/app-credentials privateKey | PRIVATE_KEY
-
-      # # Fetch github token just for the rancher repository
-      # - uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b # v2
-      #   id: app-token
-      #   with:
-      #     app-id: ${{ env.APP_ID }}
-      #     private-key: ${{ env.PRIVATE_KEY }}
-      #     repositories: |
-      #       rancher
 
       - name: Checkout furkatgofurov7/rancher
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
@@ -91,7 +63,7 @@ jobs:
           ref: "${{ steps.find_charts_branch.outputs.charts_branch }}"
           path: charts
 
-      # Prevents the Rancher CI to continuously fail while the webhook RC is not
+      # Prevents the Rancher CI to continuously fail while the turtles RC is not
       # yet added to charts' index.yaml file due to caching.
       - name: Verify RC exists
         env:
@@ -105,12 +77,6 @@ jobs:
             echo "rancher-turtles RC version $NEW_TURTLES not found in charts (branch=$CHARTS_BRANCH). Aborting."
             exit 1
           fi
-      # - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
-      #   with:
-      #     go-version: ${{ env.SETUP_GO_VERSION }}
-
-      # - name: Install controller-gen
-      #   run: go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.17.2
 
       - name: Configure the committer
         run: |
@@ -121,10 +87,6 @@ jobs:
         env:
           GH_TOKEN: "${{ secrets.PUSH_TO_FORKS_TOKEN }}"
           APP_USER: "${{ github.actor }}"
-
-      # - name: Prepare short version
-      #   run: |
-      #     echo "NEW_TURTLES_SHORT=${NEW_TURTLES#v}" >> $GITHUB_ENV
 
       - name: Run release script
         run: |
