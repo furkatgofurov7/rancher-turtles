@@ -1,24 +1,16 @@
 #!/bin/sh
 #
-# Bumps Webhook version in a locally checked out rancher/charts repository
+# Bumps Turtles version in a locally checked out rancher/charts repository
 #
 # Usage:
-#   ./release-against-charts.sh <path to charts repo> <prev webhook release> <new webhook release>
+#   ./release-against-charts.sh <path to charts repo> <prev turtles release> <new turtles release>
 #
 # Example:
-# ./release-against-charts.sh "${GITHUB_WORKSPACE}" "v0.5.0-rc.13" "v0.5.0-rc.14"
+# ./release-against-charts.sh "${GITHUB_WORKSPACE}" "v0.23.0-rc.0" "v0.23.0"
 
 CHARTS_DIR=$1
 PREV_TURTLES_VERSION="$2"   # e.g. 0.23.0-rc.0
 NEW_TURTLES_VERSION="$3"    # e.g. 0.23.0
-# PREV_CHART_VERSION="$3"   # e.g. 101.2.0
-# NEW_CHART_VERSION="$4"
-#REPLACE="$3"              # remove previous version if `true`, otherwise add new
-# VERSION_OVERRIDE="$3"     # e.g. auto, patch, minor
-# MULTI_RC="$4"             # e.g. true, false
-# NEW_CHART="$5"            # e.g. true, false
-
-# CHARTS_DIR=${CHARTS_DIR-"$(dirname -- "$0")/../../../charts"}
 
 usage() {
     cat <<EOF
@@ -71,7 +63,7 @@ set -ue
 
 cd "${CHARTS_DIR}"
 
-# Validate the given turtles version (eg: 0.5.0-rc.13)
+# Validate the given turtles version (eg: 0.23.0-rc.0)
 if ! grep -q "${PREV_TURTLES_VERSION_SHORT}" ./packages/rancher-turtles/package.yaml; then
     echo "Previous turtles version references do not exist in ./packages/rancher-turtles/. The content of the file is:"
     cat ./packages/rancher-turtles/package.yaml
@@ -106,73 +98,3 @@ yq --inplace ".rancher-turtles = [\"${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION
 
 git add release.yaml
 git commit -m "Add rancher-turtles ${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION_SHORT} to release.yaml"
-
-# pushd "${CHARTS_DIR}" > /dev/null
-
-# if [ -f packages/rancher-turtles/package.yaml ];  then
-#     # Use new auto bump scripting until the Github action CI works as expected
-#     # no parameters besides the target branch are needed in theory, but the pr
-#     # creation still needs the new Chart and Turtles version
-#     #make pull-scripts
-#     # make chart-bump package=rancher-turtles branch="$(git rev-parse --abbrev-ref HEAD)"
-#     make chart-bump package=rancher-turtles branch="$(git rev-parse --abbrev-ref HEAD)"
-#     #LOG="DEBUG" ./bin/charts-build-scripts chart-bump --package="rancher-turtles" --branch="dev-v2.12"  --override="${VERSION_OVERRIDE}" --multi-rc="${MULTI_RC}" --new-chart="${NEW_CHART}"
-
-#     if [ "${REPLACE}" == "true" ] && [ -f "assets/rancher-turtles/rancher-turtles-${PREV_CHART_VERSION}+up${PREV_TURTLES_VERSION}.tgz" ]; then
-#         for i in rancher-turtles; do
-#             CHART=$i VERSION=${PREV_CHART_VERSION}+up${PREV_TURTLES_VERSION} make remove
-#         done
-#         git add assets/rancher-turtles* charts/rancher-turtles* index.yaml
-#         git commit -m "Remove Turtles ${PREV_CHART_VERSION}+up${PREV_TURTLES_VERSION}"
-#         git checkout release.yaml   # reset unwanted changes to release.yaml, relevant ones are already part of the previous commit
-#     fi
-# else
-#     # For Rancher versions before 2.10 run the legacy implementation
-#     if [ ! -f bin/charts-build-scripts ]; then
-#         make pull-scripts
-#     fi
-
-#     if grep -q "version: ${PREV_CHART_VERSION}" ./packages/rancher-turtles/package.yaml && grep -q "${PREV_TURTLES_VERSION}" ./packages/rancher-turtles/package.yaml; then
-#         find ./packages/rancher-turtles/ -type f -exec sed -i -e "s/${PREV_TURTLES_VERSION}/${NEW_TURTLES_VERSION="$2"    # e.g. 0.23.0
-# }/g" {} \;
-#         find ./packages/rancher-turtles/ -type f -exec sed -i -e "s/version: ${PREV_CHART_VERSION}/version: ${NEW_CHART_VERSION}/g" {} \;
-#     else
-#         echo "Previous Turtles version references do not exist in ./packages/rancher-turtles/ so replacing it with the new version is not possible. Exiting..."
-#         exit 1
-#     fi
-
-#     for i in rancher-turtles; do
-#         yq --inplace "del( .${i}.[] | select(. == \"${PREV_CHART_VERSION}+up${PREV_TURTLES_VERSION}\") )" release.yaml
-#         yq --inplace ".${i} += [\"${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION="$2"    # e.g. 0.23.0
-# }\"]" release.yaml
-#     done
-#     # Sort keys in release.yaml
-#     yq -i -P 'sort_keys(..)' release.yaml
-
-#     # Adapt Gitjob version in generated patch
-#     if grep -q '^-  version: ' ./packages/rancher-turtles/generated-changes/patch/Chart.yaml.patch; then
-#         GITJOB_VERSION=$(curl -s "https://raw.githubusercontent.com/rancher/turtles/v${NEW_TURTLES_VERSION="$2"    # e.g. 0.23.0
-# }/charts/rancher-turtles/gitjob/Chart.yaml" | yq e .version)
-#         sed -i -e "s/^-  version: .*$/-  version: ${GITJOB_VERSION}/" ./packages/rancher-turtles/generated-changes/patch/Chart.yaml.patch
-#     fi
-
-#     git add packages/rancher-turtles release.yaml
-#     git commit -m "Updating to Turtles v${NEW_TURTLES_VERSION="$2"    # e.g. 0.23.0
-# }"
-
-#     if [ "${REPLACE}" == "true" ]; then
-#         for i in rancher-turtles; do
-#             CHART=$i VERSION=${PREV_CHART_VERSION}+up${PREV_TURTLES_VERSION} make remove
-#         done
-#     fi
-
-#     PACKAGE=rancher-turtles make charts
-#     git checkout release.yaml   # reset unwanted changes to release.yaml, relevant ones are already part of the previous commit
-#     git add assets/rancher-turtles* charts/rancher-turtles* index.yaml
-#     git commit -m "Autogenerated changes for Turtles v${NEW_TURTLES_VERSION="$2"    # e.g. 0.23.0
-# }"
-# fi
-
-# PACKAGE=rancher-turtles make validate
-
-# popd > /dev/null
