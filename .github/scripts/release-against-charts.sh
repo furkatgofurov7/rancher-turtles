@@ -21,9 +21,10 @@ if [ -f packages/rancher-turtles/package.yaml ];  then
     # Use new auto bump scripting until the Github action CI works as expected
     # no parameters besides the target branch are needed in theory, but the pr
     # creation still needs the new Chart and Turtles version
-    make pull-scripts
+    #make pull-scripts
     # make chart-bump package=rancher-turtles branch="$(git rev-parse --abbrev-ref HEAD)"
-    LOG="DEBUG" ./bin/charts-build-scripts chart-bump --package="rancher-turtles" --branch="dev-v2.12"  --override="${VERSION_OVERRIDE}" --multi-rc="${MULTI_RC}" --new-chart="${NEW_CHART}"
+    make chart-bump package=rancher-turtles branch="$(git rev-parse --abbrev-ref HEAD)"
+    #LOG="DEBUG" ./bin/charts-build-scripts chart-bump --package="rancher-turtles" --branch="dev-v2.12"  --override="${VERSION_OVERRIDE}" --multi-rc="${MULTI_RC}" --new-chart="${NEW_CHART}"
 
     if [ "${REPLACE}" == "true" ] && [ -f "assets/rancher-turtles/rancher-turtles-${PREV_CHART_VERSION}+up${PREV_TURTLES_VERSION}.tgz" ]; then
         for i in rancher-turtles; do
