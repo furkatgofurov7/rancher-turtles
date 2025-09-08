@@ -18,6 +18,10 @@ on:
         description: "Set 'true' to bump chart major version when the Turtles minor version increases (e.g., v0.20.0 → v0.21.0-rc.0). Default: false"
         required: false
         default: "false"
+        type: choice
+        options:
+          - "true"
+          - "false"
 
 env:
   TURTLES_REF: "${{ github.ref_name }}"
