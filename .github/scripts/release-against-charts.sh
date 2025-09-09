@@ -119,36 +119,40 @@ if ! PREV_CHART_VERSION=$(yq '.version' ./packages/rancher-turtles/package.yaml)
     exit 1
 fi
 
+# Determine new chart version
 if [ "$is_new_minor" = "true" ]; then
     if [ "$BUMP_MAJOR" != "true" ]; then
         echo "Error: Detected new minor bump ($PREV_TURTLES_VERSION to $NEW_TURTLES_VERSION), but bump_major flag was not set."
         exit 1
     fi
-    echo "Bumping chart major: $PREV_CHART_VERSION to $(bump_major "$PREV_CHART_VERSION")"
     NEW_CHART_VERSION=$(bump_major "$PREV_CHART_VERSION")
     COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart major bump)"
-elif [ "$is_patch_bump" = "true" ]; then
-    echo "Bumping chart patch: $PREV_CHART_VERSION to $(bump_patch "$PREV_CHART_VERSION")"
+elif [ "$is_prev_rc" = "false" ]; then
     NEW_CHART_VERSION=$(bump_patch "$PREV_CHART_VERSION")
     COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart patch bump)"
 else
-    echo "Keeping chart version unchanged: $PREV_CHART_VERSION"
+    # For RC → RC or RC → stable, keep chart version unchanged
     NEW_CHART_VERSION=$PREV_CHART_VERSION
     COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (no chart bump)"
 fi
 
+# Update package.yaml with correct chart and app version
 sed -i "s/${PREV_TURTLES_VERSION_SHORT}/${NEW_TURTLES_VERSION_SHORT}/g" ./packages/rancher-turtles/package.yaml
 sed -i "s/${PREV_CHART_VERSION}/${NEW_CHART_VERSION}/g" ./packages/rancher-turtles/package.yaml
 
 git add packages/rancher-turtles
 git commit -m "$COMMIT_MSG"
 
+export NEW_CHART_VERSION_OVERRIDE="$NEW_CHART_VERSION"
 PACKAGE=rancher-turtles make charts
+
+# Update index.yaml if needed
+yq --inplace "(.entries.\"rancher-turtles\"[] | select(.version != null)).version = \"${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION_SHORT}\"" index.yaml
+
 git add ./assets/rancher-turtles ./charts/rancher-turtles index.yaml
 git commit -m "make charts"
 
-# Prepends to list
+# Update release.yaml
 yq --inplace ".rancher-turtles = [\"${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION_SHORT}\"] + .rancher-turtles" release.yaml
-
 git add release.yaml
 git commit -m "Add rancher-turtles ${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION_SHORT} to release.yaml"
