@@ -88,9 +88,17 @@ new_base=$(echo "$NEW_TURTLES_VERSION_SHORT" | sed 's/-rc.*//')
 prev_minor=$(echo "$prev_base" | cut -d. -f2)
 new_minor=$(echo "$new_base" | cut -d. -f2)
 
+prev_patch=$(echo "$prev_base" | cut -d. -f3)
+new_patch=$(echo "$new_base" | cut -d. -f3)
+
 is_new_minor=false
 if [ "$new_minor" -gt "$prev_minor" ]; then
     is_new_minor=true
+fi
+
+is_patch_bump=false
+if [ "$new_minor" -eq "$prev_minor" ] && [ "$new_patch" -gt "$prev_patch" ]; then
+    is_patch_bump=true
 fi
 
 set -ue
@@ -119,7 +127,7 @@ if [ "$is_new_minor" = "true" ]; then
     echo "Bumping chart major: $PREV_CHART_VERSION to $(bump_major "$PREV_CHART_VERSION")"
     NEW_CHART_VERSION=$(bump_major "$PREV_CHART_VERSION")
     COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart major bump)"
-elif [ "$prev_base" = "$new_base" ]; then
+elif [ "$is_patch_bump" = "true" ]; then
     echo "Bumping chart patch: $PREV_CHART_VERSION to $(bump_patch "$PREV_CHART_VERSION")"
     NEW_CHART_VERSION=$(bump_patch "$PREV_CHART_VERSION")
     COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart patch bump)"
