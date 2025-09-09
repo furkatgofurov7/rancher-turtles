@@ -119,7 +119,7 @@ if [ "$is_new_minor" = "true" ]; then
     echo "Bumping chart major: $PREV_CHART_VERSION to $(bump_major "$PREV_CHART_VERSION")"
     NEW_CHART_VERSION=$(bump_major "$PREV_CHART_VERSION")
     COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart major bump)"
-elif [ "$is_prev_rc" = "false" ]; then
+elif [ "$prev_base" = "$new_base" ]; then
     echo "Bumping chart patch: $PREV_CHART_VERSION to $(bump_patch "$PREV_CHART_VERSION")"
     NEW_CHART_VERSION=$(bump_patch "$PREV_CHART_VERSION")
     COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart patch bump)"
