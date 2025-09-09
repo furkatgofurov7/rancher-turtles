@@ -3,33 +3,19 @@
 # Bumps Turtles version in a locally checked out rancher/charts repository
 #
 # Usage:
-#   ./release-against-charts.sh <path to charts repo> <prev turtles release> <new turtles release> [bump major]
+#   ./release-against-charts.sh <path to charts repo> <prev turtles release> <new turtles release>
 #
 # Example:
-# ./release-against-charts.sh "${GITHUB_WORKSPACE}" "v0.23.0-rc.0" "v0.23.0" false
+# ./release-against-charts.sh "${GITHUB_WORKSPACE}" "v0.23.0-rc.0" "v0.23.0"
 
 CHARTS_DIR=$1
 PREV_TURTLES_VERSION="$2"   # e.g. 0.23.0-rc.0
 NEW_TURTLES_VERSION="$3"    # e.g. 0.23.0
-BUMP_MAJOR="${4:-false}"   # default false if not given
 
 usage() {
     cat <<EOF
 Usage:
-  $0 <path to charts repo> <prev turtles release> <new turtles release> [bump_major]
-
-Arguments:
-  <path to charts repo>   Path to locally checked out charts repo
-  <prev turtles release>  Previous rancher-turtles version (e.g. v0.20.0-rc.0)
-  <new turtles release>   New rancher-turtles version (e.g. v0.20.0, v0.20.1-rc.1, v0.21.0-rc.0)
-  <bump_major>            Optional. Must be "true" if introducing a new turtles minor version.
-                          Example: v0.20.0 → v0.21.0-rc.0 requires bump_major=true.
-
-Examples:
-  RC to RC:        $0 ./charts v0.19.0-rc.0 v0.19.0-rc.1
-  RC to stable:    $0 ./charts v0.20.0-rc.0 v0.20.0
-  stable to RC:    $0 ./charts v0.20.0 v0.20.1-rc.1
-  new minor RC:    $0 ./charts v0.20.0 v0.21.0-rc.0 true   # bump chart major
+  $0 <path to charts repo> <prev rancher turtles release> <new rancher turtles>
 EOF
 }
 
@@ -40,13 +26,6 @@ bump_patch() {
     patch=$(echo "$version" | cut -d. -f3)
     new_patch=$((patch + 1))
     echo "${major}.${minor}.${new_patch}"
-}
-
-bump_major() {
-    version=$1
-    major=$(echo "$version" | cut -d. -f1)
-    new_major=$((major + 1))
-    echo "${new_major}.0.0"
 }
 
 validate_version_format() {
@@ -80,27 +59,6 @@ fi
 PREV_TURTLES_VERSION_SHORT=$(echo "$PREV_TURTLES_VERSION" | sed 's|^v||')  # e.g. 0.5.2-rc.3
 NEW_TURTLES_VERSION_SHORT=$(echo "$NEW_TURTLES_VERSION" | sed 's|^v||')  # e.g. 0.5.2-rc.4
 
-
-# Extract base versions without -rc suffix
-prev_base=$(echo "$PREV_TURTLES_VERSION_SHORT" | sed 's/-rc.*//')
-new_base=$(echo "$NEW_TURTLES_VERSION_SHORT" | sed 's/-rc.*//')
-
-prev_minor=$(echo "$prev_base" | cut -d. -f2)
-new_minor=$(echo "$new_base" | cut -d. -f2)
-
-prev_patch=$(echo "$prev_base" | cut -d. -f3)
-new_patch=$(echo "$new_base" | cut -d. -f3)
-
-is_new_minor=false
-if [ "$new_minor" -gt "$prev_minor" ]; then
-    is_new_minor=true
-fi
-
-is_patch_bump=false
-if [ "$new_minor" -eq "$prev_minor" ] && [ "$new_patch" -gt "$prev_patch" ]; then
-    is_patch_bump=true
-fi
-
 set -ue
 
 cd "${CHARTS_DIR}"
@@ -119,40 +77,185 @@ if ! PREV_CHART_VERSION=$(yq '.version' ./packages/rancher-turtles/package.yaml)
     exit 1
 fi
 
-# Determine new chart version
-if [ "$is_new_minor" = "true" ]; then
-    if [ "$BUMP_MAJOR" != "true" ]; then
-        echo "Error: Detected new minor bump ($PREV_TURTLES_VERSION to $NEW_TURTLES_VERSION), but bump_major flag was not set."
-        exit 1
-    fi
-    NEW_CHART_VERSION=$(bump_major "$PREV_CHART_VERSION")
-    COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart major bump)"
-elif [ "$is_prev_rc" = "false" ]; then
+if [ "$is_prev_rc" = "false" ]; then
     NEW_CHART_VERSION=$(bump_patch "$PREV_CHART_VERSION")
-    COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart patch bump)"
 else
-    # For RC → RC or RC → stable, keep chart version unchanged
     NEW_CHART_VERSION=$PREV_CHART_VERSION
-    COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (no chart bump)"
 fi
 
-# Update package.yaml with correct chart and app version
 sed -i "s/${PREV_TURTLES_VERSION_SHORT}/${NEW_TURTLES_VERSION_SHORT}/g" ./packages/rancher-turtles/package.yaml
 sed -i "s/${PREV_CHART_VERSION}/${NEW_CHART_VERSION}/g" ./packages/rancher-turtles/package.yaml
 
 git add packages/rancher-turtles
-git commit -m "$COMMIT_MSG"
+git commit -m "Bump rancher-turtles to $NEW_TURTLES_VERSION"
 
-export NEW_CHART_VERSION_OVERRIDE="$NEW_CHART_VERSION"
 PACKAGE=rancher-turtles make charts
-
-# Update index.yaml if needed
-yq --inplace "(.entries.\"rancher-turtles\"[] | select(.version != null)).version = \"${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION_SHORT}\"" index.yaml
-
 git add ./assets/rancher-turtles ./charts/rancher-turtles index.yaml
 git commit -m "make charts"
 
-# Update release.yaml
+# Prepends to list
 yq --inplace ".rancher-turtles = [\"${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION_SHORT}\"] + .rancher-turtles" release.yaml
+
 git add release.yaml
 git commit -m "Add rancher-turtles ${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION_SHORT} to release.yaml"
+
+
+
+# #!/bin/sh
+# #
+# # Bumps Turtles version in a locally checked out rancher/charts repository
+# #
+# # Usage:
+# #   ./release-against-charts.sh <path to charts repo> <prev turtles release> <new turtles release> [bump major]
+# #
+# # Example:
+# # ./release-against-charts.sh "${GITHUB_WORKSPACE}" "v0.23.0-rc.0" "v0.23.0" false
+
+# CHARTS_DIR=$1
+# PREV_TURTLES_VERSION="$2"   # e.g. 0.23.0-rc.0
+# NEW_TURTLES_VERSION="$3"    # e.g. 0.23.0
+# BUMP_MAJOR="${4:-false}"   # default false if not given
+
+# usage() {
+#     cat <<EOF
+# Usage:
+#   $0 <path to charts repo> <prev turtles release> <new turtles release> [bump_major]
+
+# Arguments:
+#   <path to charts repo>   Path to locally checked out charts repo
+#   <prev turtles release>  Previous rancher-turtles version (e.g. v0.20.0-rc.0)
+#   <new turtles release>   New rancher-turtles version (e.g. v0.20.0, v0.20.1-rc.1, v0.21.0-rc.0)
+#   <bump_major>            Optional. Must be "true" if introducing a new turtles minor version.
+#                           Example: v0.20.0 → v0.21.0-rc.0 requires bump_major=true.
+
+# Examples:
+#   RC to RC:        $0 ./charts v0.19.0-rc.0 v0.19.0-rc.1
+#   RC to stable:    $0 ./charts v0.20.0-rc.0 v0.20.0
+#   stable to RC:    $0 ./charts v0.20.0 v0.20.1-rc.1
+#   new minor RC:    $0 ./charts v0.20.0 v0.21.0-rc.0 true   # bump chart major
+# EOF
+# }
+
+# bump_patch() {
+#     version=$1
+#     major=$(echo "$version" | cut -d. -f1)
+#     minor=$(echo "$version" | cut -d. -f2)
+#     patch=$(echo "$version" | cut -d. -f3)
+#     new_patch=$((patch + 1))
+#     echo "${major}.${minor}.${new_patch}"
+# }
+
+# bump_major() {
+#     version=$1
+#     major=$(echo "$version" | cut -d. -f1)
+#     new_major=$((major + 1))
+#     echo "${new_major}.0.0"
+# }
+
+# validate_version_format() {
+#     version=$1
+#     if ! echo "$version" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$'; then
+#         echo "Error: Version $version must be in the format v<major>.<minor>.<patch> or v<major>.<minor>.<patch>-rc.<number>"
+#         exit 1
+#     fi
+# }
+
+# if [ -z "$CHARTS_DIR" ] || [ -z "$PREV_TURTLES_VERSION" ] || [ -z "$NEW_TURTLES_VERSION" ]; then
+#     usage
+#     exit 1
+# fi
+
+# validate_version_format "$PREV_TURTLES_VERSION"
+# validate_version_format "$NEW_TURTLES_VERSION"
+
+# if echo "$PREV_TURTLES_VERSION" | grep -q '\-rc'; then
+#     is_prev_rc=true
+# else
+#     is_prev_rc=false
+# fi
+
+# if [ "$PREV_TURTLES_VERSION" = "$NEW_TURTLES_VERSION" ]; then
+#     echo "Previous and new rancher turtles version are the same: $NEW_TURTLES_VERSION, but must be different"
+#     exit 1
+# fi
+
+# # Remove the prefix v because the chart version doesn't contain it
+# PREV_TURTLES_VERSION_SHORT=$(echo "$PREV_TURTLES_VERSION" | sed 's|^v||')  # e.g. 0.5.2-rc.3
+# NEW_TURTLES_VERSION_SHORT=$(echo "$NEW_TURTLES_VERSION" | sed 's|^v||')  # e.g. 0.5.2-rc.4
+
+
+# # Extract base versions without -rc suffix
+# prev_base=$(echo "$PREV_TURTLES_VERSION_SHORT" | sed 's/-rc.*//')
+# new_base=$(echo "$NEW_TURTLES_VERSION_SHORT" | sed 's/-rc.*//')
+
+# prev_minor=$(echo "$prev_base" | cut -d. -f2)
+# new_minor=$(echo "$new_base" | cut -d. -f2)
+
+# prev_patch=$(echo "$prev_base" | cut -d. -f3)
+# new_patch=$(echo "$new_base" | cut -d. -f3)
+
+# is_new_minor=false
+# if [ "$new_minor" -gt "$prev_minor" ]; then
+#     is_new_minor=true
+# fi
+
+# is_patch_bump=false
+# if [ "$new_minor" -eq "$prev_minor" ] && [ "$new_patch" -gt "$prev_patch" ]; then
+#     is_patch_bump=true
+# fi
+
+# set -ue
+
+# cd "${CHARTS_DIR}"
+
+# # Validate the given turtles version (eg: 0.23.0-rc.0)
+# if ! grep -q "${PREV_TURTLES_VERSION_SHORT}" ./packages/rancher-turtles/package.yaml; then
+#     echo "Previous turtles version references do not exist in ./packages/rancher-turtles/. The content of the file is:"
+#     cat ./packages/rancher-turtles/package.yaml
+#     exit 1
+# fi
+
+# # Get the chart version (eg: 104.0.0)
+# if ! PREV_CHART_VERSION=$(yq '.version' ./packages/rancher-turtles/package.yaml); then
+#     echo "Unable to get chart version from ./packages/rancher-turtles/package.yaml. The content of the file is:"
+#     cat ./packages/rancher-turtles/package.yaml
+#     exit 1
+# fi
+
+# # Determine new chart version
+# if [ "$is_new_minor" = "true" ]; then
+#     if [ "$BUMP_MAJOR" != "true" ]; then
+#         echo "Error: Detected new minor bump ($PREV_TURTLES_VERSION to $NEW_TURTLES_VERSION), but bump_major flag was not set."
+#         exit 1
+#     fi
+#     NEW_CHART_VERSION=$(bump_major "$PREV_CHART_VERSION")
+#     COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart major bump)"
+# elif [ "$is_prev_rc" = "false" ]; then
+#     NEW_CHART_VERSION=$(bump_patch "$PREV_CHART_VERSION")
+#     COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (chart patch bump)"
+# else
+#     # For RC → RC or RC → stable, keep chart version unchanged
+#     NEW_CHART_VERSION=$PREV_CHART_VERSION
+#     COMMIT_MSG="Bump rancher-turtles to $NEW_TURTLES_VERSION (no chart bump)"
+# fi
+
+# # Update package.yaml with correct chart and app version
+# sed -i "s/${PREV_TURTLES_VERSION_SHORT}/${NEW_TURTLES_VERSION_SHORT}/g" ./packages/rancher-turtles/package.yaml
+# sed -i "s/${PREV_CHART_VERSION}/${NEW_CHART_VERSION}/g" ./packages/rancher-turtles/package.yaml
+
+# git add packages/rancher-turtles
+# git commit -m "$COMMIT_MSG"
+
+# export NEW_CHART_VERSION_OVERRIDE="$NEW_CHART_VERSION"
+# PACKAGE=rancher-turtles make charts
+
+# # Update index.yaml if needed
+# yq --inplace "(.entries.\"rancher-turtles\"[] | select(.version != null)).version = \"${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION_SHORT}\"" index.yaml
+
+# git add ./assets/rancher-turtles ./charts/rancher-turtles index.yaml
+# git commit -m "make charts"
+
+# # Update release.yaml
+# yq --inplace ".rancher-turtles = [\"${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION_SHORT}\"] + .rancher-turtles" release.yaml
+# git add release.yaml
+# git commit -m "Add rancher-turtles ${NEW_CHART_VERSION}+up${NEW_TURTLES_VERSION_SHORT} to release.yaml"
