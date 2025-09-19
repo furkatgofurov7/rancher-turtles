@@ -4,11 +4,11 @@
 
 # Rancher Turtles
 
-`Rancher Turtles` is a Kubernetes operator that provides integration between Rancher Manager and Cluster API (CAPI) with the aim of bringing full CAPI support to Rancher.
+`Rancher Turtles` is a Kubernetes operator that provides integration between Rancher Manager and Cluster API (CAPI), aiming to bring full CAPI support to Rancher.
 
 ## What is covered in this project?
 
-Currently, this project has the following functionality:
+Currently, this project has the following functionalities:
 
 - Automatically import CAPI-created clusters into `Rancher`.
 - Install and configure the `Cluster API Operator` project.
