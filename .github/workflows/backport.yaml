@@ -7,6 +7,9 @@ on:
 jobs:
   backport:
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
     if: |
       github.event.issue.pull_request != null &&
       startsWith(github.event.comment.body, '/backport ')
@@ -51,17 +54,25 @@ jobs:
           pr_number=${{ github.event.issue.number }}
           target=${{ steps.parse.outputs.target_branch }}
           branch="backport/${pr_number}-to-${target}"
-
+        
           git checkout -b "$branch" origin/$target
-
-          # Set Git identity for cherry-picks
+        
+          # Set Git identity
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
+        
           for commit in ${{ steps.commits.outputs.commits }}; do
-            git cherry-pick -x "$commit" || true
+            # Detect merge commit
+            parents=$(git rev-list --parents -n 1 $commit | wc -w)
+            if [ "$parents" -gt 2 ]; then
+              git cherry-pick -x -m 1 $commit || true
+            else
+              git cherry-pick -x $commit || true
+            fi
           done
-
+        
+          # Push using token
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push origin "$branch"
 
       - name: Create backport PR
