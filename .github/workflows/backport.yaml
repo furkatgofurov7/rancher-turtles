@@ -4,6 +4,9 @@ on:
   issue_comment:
     types: [created]
 
+permissions:
+  contents: write   # Grants GITHUB_TOKEN permission to push to the repo
+
 jobs:
   backport:
     runs-on: ubuntu-latest
@@ -54,24 +57,25 @@ jobs:
           pr_number=${{ github.event.issue.number }}
           target=${{ steps.parse.outputs.target_branch }}
           branch="backport/${pr_number}-to-${target}"
-        
+      
           git checkout -b "$branch" origin/$target
-        
-          # Set Git identity
+      
+          # Set Git identity for cherry-picks
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-        
+      
+          # Cherry-pick commits, detect merge commits
           for commit in ${{ steps.commits.outputs.commits }}; do
-            # Detect merge commit
             parents=$(git rev-list --parents -n 1 $commit | wc -w)
             if [ "$parents" -gt 2 ]; then
+              echo "Merge commit detected: $commit"
               git cherry-pick -x -m 1 $commit || true
             else
               git cherry-pick -x $commit || true
             fi
           done
-        
-          # Push using token
+      
+          # Authenticate push with token
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push origin "$branch"
 
