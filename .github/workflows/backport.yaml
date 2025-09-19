@@ -1,0 +1,72 @@
+name: Backport PR
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  backport:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.issue.pull_request != null &&
+      startsWith(github.event.comment.body, '/backport ')
+    steps:
+      - name: Parse target branch from comment
+        id: parse
+        run: |
+          branch=$(echo "${{ github.event.comment.body }}" | awk '{print $2}')
+          echo "target_branch=$branch" >> $GITHUB_OUTPUT
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: git fetch origin ${{ steps.parse.outputs.target_branch }}
+
+      - name: Get commit(s) to backport
+        id: commits
+        run: |
+          pr_number=${{ github.event.issue.number }}
+
+          # Try merge commit first
+          merge_sha=$(gh pr view $pr_number --json mergeCommit --jq .mergeCommit.oid)
+
+          if [ "$merge_sha" != "null" ] && [ -n "$merge_sha" ]; then
+            echo "commits=$merge_sha" >> $GITHUB_OUTPUT
+            echo "Detected merge commit: $merge_sha"
+          else
+            # Fall back to commits list (covers squash and rebase)
+            commits=$(gh pr view $pr_number --json commits --jq '.commits[].oid')
+            echo "commits=$commits" >> $GITHUB_OUTPUT
+            echo "Detected squash/rebase merge with commits:"
+            echo "$commits"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create backport branch
+        run: |
+          pr_number=${{ github.event.issue.number }}
+          target=${{ steps.parse.outputs.target_branch }}
+          branch="backport/${pr_number}-to-${target}"
+
+          git checkout -b "$branch" origin/$target
+
+          for commit in ${{ steps.commits.outputs.commits }}; do
+            git cherry-pick -x "$commit" || true
+          done
+
+          git push origin "$branch"
+
+      - name: Create backport PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: ${{ steps.parse.outputs.target_branch }}
+          branch: backport/${{ github.event.issue.number }}-to-${{ steps.parse.outputs.target_branch }}
+          title: "[Backport #${{ github.event.issue.number }} → ${{ steps.parse.outputs.target_branch }}] ${{ github.event.issue.title }}"
+          body: |
+            Backport of #${{ github.event.issue.number }} into `${{ steps.parse.outputs.target_branch }}`.
+            Triggered by comment: `${{ github.event.comment.body }}`
