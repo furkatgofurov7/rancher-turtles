@@ -54,6 +54,10 @@ jobs:
 
           git checkout -b "$branch" origin/$target
 
+          # Set Git identity for cherry-picks
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           for commit in ${{ steps.commits.outputs.commits }}; do
             git cherry-pick -x "$commit" || true
           done
