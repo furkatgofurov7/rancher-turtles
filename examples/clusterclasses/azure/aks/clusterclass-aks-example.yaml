@@ -158,6 +158,7 @@ metadata:
 spec:
   template:
     spec:
+      networkPluginMode: overlay
       identityRef:
         apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
         kind: AzureClusterIdentity
@@ -212,4 +213,3 @@ metadata:
 spec:
   template:
     spec: {}
-

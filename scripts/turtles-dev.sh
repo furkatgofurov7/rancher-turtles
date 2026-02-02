@@ -48,7 +48,7 @@ fi
 
 kind create cluster --config "$BASEDIR/kind-cluster-with-extramounts.yaml" --name $CLUSTER_NAME
 docker pull $RANCHER_IMAGE
-kind load docker-image $RANCHER_IMAGE --name $CLUSTER_NAME
+#kind load docker-image $RANCHER_IMAGE --name $CLUSTER_NAME
 
 kubectl rollout status deployment coredns -n kube-system --timeout=90s
 
@@ -78,7 +78,7 @@ trap cleanup EXIT INT TERM
 
 # Build and load the controller image
 make docker-build-prime
-kind load docker-image $TURTLES_IMAGE --name $CLUSTER_NAME
+# kind load docker-image $TURTLES_IMAGE --name $CLUSTER_NAME
 
 # Start port-forwarding for Gitea
 echo "Starting port-forward for Gitea..."
@@ -102,7 +102,8 @@ helm install rancher rancher-$RANCHER_CHANNEL/rancher \
     --set image.tag=$RANCHER_IMAGE_TAG \
     --set debug=true \
     --version="$RANCHER_VERSION" \
-    --wait
+
+sleep 420
 
 # Start port-forwarding for Rancher
 echo "Starting port-forward for Rancher..."
@@ -239,23 +240,10 @@ install_local_providers_chart() {
         -n cattle-turtles-system \
         --set providers.bootstrapRKE2.manager.verbosity=5 \
         --set providers.controlplaneRKE2.manager.verbosity=5 \
-        --set providers.bootstrapKubeadm.enabled=true \
-        --set providers.bootstrapKubeadm.manager.verbosity=5 \
-        --set providers.controlplaneKubeadm.enabled=true \
-        --set providers.controlplaneKubeadm.manager.verbosity=5 \
-        --set providers.infrastructureDocker.enabled=true \
-        --set providers.infrastructureDocker.manager.verbosity=5 \
-        --set providers.infrastructureAWS.enabled=true \
-        --set providers.infrastructureAWS.manager.verbosity=5 \
         --set providers.infrastructureAzure.enabled=true \
         --set providers.infrastructureAzure.manager.verbosity=5 \
-        --set providers.infrastructureGCP.enabled=true \
-        --set providers.infrastructureGCP.manager.verbosity=5 \
-        --set providers.infrastructureGCP.variables.GCP_B64ENCODED_CREDENTIALS="" \
-        --set providers.infrastructureVSphere.enabled=true \
-        --set providers.infrastructureVSphere.manager.verbosity=5 \
         --create-namespace --wait \
-        --timeout 180s
+        --timeout 300s
 }
 
 echo "Installing local Rancher Turtles Providers..."
