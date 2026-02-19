@@ -24,12 +24,10 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Create dummy chart package (test only)
-        run: |
-          mkdir -p ${{ env.RELEASE_DIR }}
-          echo "dummy chart content" > /tmp/chart-dummy
-          tar -czf ${{ env.RELEASE_DIR }}/rancher-turtles-0.25.99-test.tgz -C /tmp chart-dummy
-          echo "Created dummy chart: $(ls ${{ env.RELEASE_DIR }})"
+      # TEST ONLY: calls build-chart instead of release to skip the $(NOTES)
+      # step which hits rancher/turtles upstream and fails from a fork
+      - name: Package operator chart
+        run: RELEASE_TAG=${{ env.TAG }} CHART_PACKAGE_DIR=${{ env.RELEASE_DIR }} CONTROLLER_IMG="rancher/turtles" ORG=rancher make build-chart
 
       - name: Install chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
