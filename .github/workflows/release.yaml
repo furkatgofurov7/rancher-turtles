@@ -3,7 +3,7 @@ name: Turtles release
 on:
   push:
     tags:
-      - "test-v*"
+      - "v*-test"
   workflow_dispatch:
 
 permissions:
