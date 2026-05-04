@@ -53,7 +53,7 @@ jobs:
     - name: Push prime image to staging registry
       uses: rancher/ecm-distro-tools/actions/publish-image@5d6e63896fea85836b2fca6dfb9236bcefe2aaa5
       with:
-        image: rancher-turtles
+        image: turtles
         tag: ${{ env.TAG }}-${{ matrix.tag-suffix }}
         platforms: ${{ matrix.platform }}
         push-to-public: false
@@ -104,14 +104,14 @@ jobs:
       shell: bash
       run: |
         if [ "${{ matrix.image-type }}" = "community" ]; then
-          IMAGE="turtles"                                      # Docker Hub image name
+          IMAGE="turtles"
           URL="docker.io/furkat007/${IMAGE}:${{ env.TAG }}"
           docker buildx imagetools create -t "${URL}" \
             "${URL}-linux-amd64" \
             "${URL}-linux-arm64"
           echo "Pushed multi-platform image: ${URL}"
         elif [ "${{ matrix.image-type }}" = "prime" ]; then
-          IMAGE="rancher-turtles"                                      # Staging registry image name
+          IMAGE="turtles"
           URL="${{ env.STAGE_REGISTRY }}/furkatgofurov7/${IMAGE}:${{ env.TAG }}"
           docker buildx imagetools create -t "${URL}" \
             "${URL}-linux-amd64" \
@@ -142,7 +142,7 @@ jobs:
         cosign sign \
           --oidc-provider=github-actions \
           --yes \
-          --sign-container-identity="${{ env.PRIME_REGISTRY }}/furkatgofurov7/rancher-turtles" \
+          --sign-container-identity="${{ env.PRIME_REGISTRY }}/furkatgofurov7/turtles" \
           "${MULTI_PLATFORM_IMAGE}"
 
     - name: Attest provenance
