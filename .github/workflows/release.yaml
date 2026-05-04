@@ -13,7 +13,14 @@ permissions:
 
 jobs:
   release:
-    runs-on: runs-on,runner=8cpu-linux-x64,run-id=${{ github.run_id }},image=ubuntu22-full-x64
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - platform: linux/amd64
+          tag-suffix: "linux-amd64"
+        - platform: linux/arm64
+          tag-suffix: "linux-arm64"
     env:
       TAG: ${{ github.ref_name }}
     steps:
@@ -78,31 +85,20 @@ jobs:
         echo "STAGE_REGISTRY_PASSWORD=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
         echo "PRIME_REGISTRY=ghcr.io" >> $GITHUB_ENV
 
-    - name: Push community image to DockerHub
-      uses: rancher/ecm-distro-tools/actions/publish-image@5d6e63896fea85836b2fca6dfb9236bcefe2aaa5
+    - name: Log into Docker Hub registry
+      if: ${{ matrix.image-type == 'community' }}
+      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
       with:
-        image: turtles
-        tag: ${{ github.ref_name }}
-        platforms: linux/amd64,linux/arm64
-        push-to-prime: false
-        public-repo: rancher
-        public-username: ${{ env.DOCKER_USERNAME }}
-        public-password: ${{ env.DOCKER_PASSWORD }}
-        make-target: push-image
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_PASSWORD }}
 
-    - name: Push prime image to staging registry
-      uses: rancher/ecm-distro-tools/actions/publish-image@5d6e63896fea85836b2fca6dfb9236bcefe2aaa5
+    - name: Log into Staging registry
+      if: ${{ matrix.image-type == 'prime' }}
+      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
       with:
-        image: turtles
-        tag: ${{ github.ref_name }}
-        platforms: linux/amd64,linux/arm64
-        push-to-public: false
-        prime-repo: rancher
-        identity-registry: ${{ env.PRIME_REGISTRY }}
-        prime-registry: ${{ env.STAGE_REGISTRY }}
-        prime-username: ${{ env.STAGE_REGISTRY_USERNAME }}
-        prime-password: ${{ env.STAGE_REGISTRY_PASSWORD }}
-        prime-make-target: push-prime-image
+        username: ${{ env.STAGE_REGISTRY_USERNAME }}
+        password: ${{ env.STAGE_REGISTRY_PASSWORD }}
+        registry: ${{ env.STAGE_REGISTRY }}
 
     - name: Create multi-platform image and push
       shell: bash
@@ -143,6 +139,7 @@ jobs:
 
     - name: Sign multi-platform image
       shell: bash
+      if: ${{ matrix.image-type == 'prime' }}
       run: |
         cosign sign \
           --oidc-provider=github-actions \
@@ -152,6 +149,7 @@ jobs:
 
     - name: Attest provenance
       shell: bash
+      if: ${{ matrix.image-type == 'prime' }}
       run: |
         max_retries=3
         retry_delay=5
@@ -176,7 +174,7 @@ jobs:
     name: Helm chart release
     uses: ./.github/workflows/chart-release.yml
     needs:
-    - release
+    - merge
     with:
       tag: ${{ github.ref_name }}
       org: furkatgofurov7
