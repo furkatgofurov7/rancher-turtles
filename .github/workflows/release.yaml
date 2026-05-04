@@ -34,7 +34,7 @@ jobs:
         echo "DOCKER_USERNAME=furkat007" >> $GITHUB_ENV
         echo "DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}" >> $GITHUB_ENV
         echo "STAGE_REGISTRY=ghcr.io" >> $GITHUB_ENV
-        echo "STAGE_REGISTRY_USERNAME=furkat007" >> $GITHUB_ENV
+        echo "STAGE_REGISTRY_USERNAME=furkatgofurov7" >> $GITHUB_ENV
         echo "STAGE_REGISTRY_PASSWORD=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
         echo "PRIME_REGISTRY=ghcr.io" >> $GITHUB_ENV
 
@@ -57,7 +57,7 @@ jobs:
         tag: ${{ env.TAG }}-${{ matrix.tag-suffix }}
         platforms: ${{ matrix.platform }}
         push-to-public: false
-        prime-repo: furkat007
+        prime-repo: furkatgofurov7
         identity-registry: ${{ env.PRIME_REGISTRY }}
         prime-registry: ${{ env.STAGE_REGISTRY }}
         prime-username: ${{ env.STAGE_REGISTRY_USERNAME }}
@@ -81,7 +81,7 @@ jobs:
         echo "DOCKER_USERNAME=furkat007" >> $GITHUB_ENV
         echo "DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}" >> $GITHUB_ENV
         echo "STAGE_REGISTRY=ghcr.io" >> $GITHUB_ENV
-        echo "STAGE_REGISTRY_USERNAME=furkat007" >> $GITHUB_ENV
+        echo "STAGE_REGISTRY_USERNAME=furkatgofurov7" >> $GITHUB_ENV
         echo "STAGE_REGISTRY_PASSWORD=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
         echo "PRIME_REGISTRY=ghcr.io" >> $GITHUB_ENV
 
@@ -103,29 +103,27 @@ jobs:
     - name: Create multi-platform image and push
       shell: bash
       run: |
-        IMAGE="turtles"
         if [ "${{ matrix.image-type }}" = "community" ]; then
+          IMAGE="turtles"                                      # Docker Hub image name
           URL="docker.io/furkat007/${IMAGE}:${{ env.TAG }}"
           docker buildx imagetools create -t "${URL}" \
             "${URL}-linux-amd64" \
             "${URL}-linux-arm64"
           echo "Pushed multi-platform image: ${URL}"
         elif [ "${{ matrix.image-type }}" = "prime" ]; then
-          URL="${{ env.STAGE_REGISTRY }}/furkat007/${IMAGE}:${{ env.TAG }}"
+          IMAGE="turtles"                                      # Staging registry image name
+          URL="${{ env.STAGE_REGISTRY }}/furkatgofurov7/${IMAGE}:${{ env.TAG }}"   # ✅
           docker buildx imagetools create -t "${URL}" \
             "${URL}-linux-amd64" \
             "${URL}-linux-arm64"
           echo "Pushed multi-platform image: ${URL}"
 
-          # Extract the multi-platform image digest for signing
           docker pull ${URL}
           IMAGE_DIGEST=$( docker inspect --format='{{index .RepoDigests 0}}' ${URL} | sed 's/.*@//' )
-          # Set as environment variable for next steps
-          MULTI_PLATFORM_IMAGE="${{ env.STAGE_REGISTRY }}/furkat007/${IMAGE}@${IMAGE_DIGEST}"
+          MULTI_PLATFORM_IMAGE="${{ env.STAGE_REGISTRY }}/furkatgofurov7/${IMAGE}@${IMAGE_DIGEST}"           # ✅
           echo "MULTI_PLATFORM_IMAGE"=${MULTI_PLATFORM_IMAGE} >> "$GITHUB_ENV"
 
-          # Also set a tag-specific variable for provenance attestation step
-          MULTI_PLATFORM_IMAGE_TAG="${{ env.STAGE_REGISTRY }}/furkat007/${IMAGE}:${{ env.TAG }}@${IMAGE_DIGEST}"
+          MULTI_PLATFORM_IMAGE_TAG="${{ env.STAGE_REGISTRY }}/furkatgofurov7/${IMAGE}:${{ env.TAG }}@${IMAGE_DIGEST}"  # ✅
           echo "MULTI_PLATFORM_IMAGE_TAG"=${MULTI_PLATFORM_IMAGE_TAG} >> "$GITHUB_ENV"
         fi
 
@@ -144,7 +142,7 @@ jobs:
         cosign sign \
           --oidc-provider=github-actions \
           --yes \
-          --sign-container-identity="${{ env.PRIME_REGISTRY }}/furkat007/turtles" \
+          --sign-container-identity="${{ env.PRIME_REGISTRY }}/furkatgofurov7/turtles" \
           "${MULTI_PLATFORM_IMAGE}"
 
     - name: Attest provenance
