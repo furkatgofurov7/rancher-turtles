@@ -53,7 +53,7 @@ jobs:
     - name: Push prime image to staging registry
       uses: rancher/ecm-distro-tools/actions/publish-image@5d6e63896fea85836b2fca6dfb9236bcefe2aaa5
       with:
-        image: turtles
+        image: rancher-turtles
         tag: ${{ env.TAG }}-${{ matrix.tag-suffix }}
         platforms: ${{ matrix.platform }}
         push-to-public: false
@@ -111,8 +111,8 @@ jobs:
             "${URL}-linux-arm64"
           echo "Pushed multi-platform image: ${URL}"
         elif [ "${{ matrix.image-type }}" = "prime" ]; then
-          IMAGE="turtles"                                      # Staging registry image name
-          URL="${{ env.STAGE_REGISTRY }}/furkatgofurov7/${IMAGE}:${{ env.TAG }}"   # ✅
+          IMAGE="rancher-turtles"                                      # Staging registry image name
+          URL="${{ env.STAGE_REGISTRY }}/furkatgofurov7/${IMAGE}:${{ env.TAG }}"
           docker buildx imagetools create -t "${URL}" \
             "${URL}-linux-amd64" \
             "${URL}-linux-arm64"
@@ -120,10 +120,10 @@ jobs:
 
           docker pull ${URL}
           IMAGE_DIGEST=$( docker inspect --format='{{index .RepoDigests 0}}' ${URL} | sed 's/.*@//' )
-          MULTI_PLATFORM_IMAGE="${{ env.STAGE_REGISTRY }}/furkatgofurov7/${IMAGE}@${IMAGE_DIGEST}"           # ✅
+          MULTI_PLATFORM_IMAGE="${{ env.STAGE_REGISTRY }}/furkatgofurov7/${IMAGE}@${IMAGE_DIGEST}"
           echo "MULTI_PLATFORM_IMAGE"=${MULTI_PLATFORM_IMAGE} >> "$GITHUB_ENV"
 
-          MULTI_PLATFORM_IMAGE_TAG="${{ env.STAGE_REGISTRY }}/furkatgofurov7/${IMAGE}:${{ env.TAG }}@${IMAGE_DIGEST}"  # ✅
+          MULTI_PLATFORM_IMAGE_TAG="${{ env.STAGE_REGISTRY }}/furkatgofurov7/${IMAGE}:${{ env.TAG }}@${IMAGE_DIGEST}"
           echo "MULTI_PLATFORM_IMAGE_TAG"=${MULTI_PLATFORM_IMAGE_TAG} >> "$GITHUB_ENV"
         fi
 
@@ -142,7 +142,7 @@ jobs:
         cosign sign \
           --oidc-provider=github-actions \
           --yes \
-          --sign-container-identity="${{ env.PRIME_REGISTRY }}/furkatgofurov7/turtles" \
+          --sign-container-identity="${{ env.PRIME_REGISTRY }}/furkatgofurov7/rancher-turtles" \
           "${MULTI_PLATFORM_IMAGE}"
 
     - name: Attest provenance
