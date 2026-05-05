@@ -44,7 +44,15 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Package operator chart
-        run: RELEASE_TAG=${GITHUB_REF##*/} CHART_PACKAGE_DIR=${{ inputs.release_dir }} CONTROLLER_IMG="${{ inputs.org }}/${{ inputs.image }}" ORG=${{ inputs.org }} make release
+        run: |
+          # TEST FORK OVERRIDE: PREVIOUS_TAG fallback + skip notes (no PRs in fork)
+          PREV_TAG=$(git describe --abbrev=0 --exclude ${GITHUB_REF##*/} --exclude 'examples/*' 2>/dev/null || echo "v0.0.0-test")
+          RELEASE_TAG=${GITHUB_REF##*/} \
+          PREVIOUS_TAG=${PREV_TAG} \
+          CHART_PACKAGE_DIR=${{ inputs.release_dir }} \
+          CONTROLLER_IMG="${{ inputs.org }}/${{ inputs.image }}" \
+          ORG=${{ inputs.org }} \
+          make release NOTES=/bin/true
 
       - name: Install chart-releaser
         uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # v1.7.0
