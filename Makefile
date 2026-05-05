@@ -28,7 +28,7 @@ endif
 
 GO_VERSION ?= $(shell grep "go " go.mod | head -1 |awk '{print $$NF}')
 GO_CONTAINER_IMAGE ?= docker.io/library/golang:$(GO_VERSION)
-REPO ?= rancher/turtles
+REPO ?= furkatgofurov7/turtles
 
 CAPI_VERSION ?= $(shell grep "sigs.k8s.io/cluster-api" go.mod | head -1 |awk '{print $$NF}')
 CAPI_UPSTREAM_REPO ?= https://github.com/kubernetes-sigs/cluster-api
