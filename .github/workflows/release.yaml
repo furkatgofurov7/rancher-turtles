@@ -39,11 +39,12 @@ jobs:
         echo "PRIME_REGISTRY=ghcr.io" >> $GITHUB_ENV
 
     - name: Push community image to DockerHub
-      uses: rancher/ecm-distro-tools/actions/publish-image@5d6e63896fea85836b2fca6dfb9236bcefe2aaa5
+      uses: rancher/ecm-distro-tools/actions/publish-image@067de5ae5517b661b4d2f10e22cc5a21aa0ac915
       with:
         image: turtles
         tag: ${{ env.TAG }}-${{ matrix.tag-suffix }}
         platforms: ${{ matrix.platform }}
+        push-to-public: true
         push-to-prime: false
         public-repo: furkat007
         public-username: ${{ env.DOCKER_USERNAME }}
@@ -51,13 +52,14 @@ jobs:
         make-target: push-image
 
     - name: Push prime image to staging registry
-      uses: rancher/ecm-distro-tools/actions/publish-image@5d6e63896fea85836b2fca6dfb9236bcefe2aaa5
+      uses: rancher/ecm-distro-tools/actions/publish-image@067de5ae5517b661b4d2f10e22cc5a21aa0ac915
       with:
         image: turtles
         tag: ${{ env.TAG }}-${{ matrix.tag-suffix }}
         platforms: ${{ matrix.platform }}
         push-to-public: false
         prime-repo: furkatgofurov7
+        push-to-prime: true
         identity-registry: ${{ env.PRIME_REGISTRY }}
         prime-registry: ${{ env.STAGE_REGISTRY }}
         prime-username: ${{ env.STAGE_REGISTRY_USERNAME }}
